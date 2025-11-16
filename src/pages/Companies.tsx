@@ -29,98 +29,177 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { mockCompanies } from "@/data/mockData";
-import { Company } from "@/types";
+import { Separator } from "@/components/ui/separator";
+import { mockCompanies, mockUsers } from "@/data/mockData";
+import { Company, User } from "@/types";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Companies = () => {
   const [companies, setCompanies] = useState<Company[]>(mockCompanies);
+  const [users, setUsers] = useState<User[]>(mockUsers);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [formData, setFormData] = useState({
+  
+  // Formulário dividido em duas seções
+  const [companyFormData, setCompanyFormData] = useState({
     company_name: "",
-    manager_name: "",
-    manager_contact: "",
+    appKey: "",
+    appSecret: "",
   });
+  
+  const [managerFormData, setManagerFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
+  
   const { toast } = useToast();
 
+  const resetForms = () => {
+    setCompanyFormData({ company_name: "", appKey: "", appSecret: "" });
+    setManagerFormData({ name: "", email: "", phone: "" });
+  };
+
   const handleAdd = () => {
-    if (!formData.company_name || !formData.manager_name || !formData.manager_contact) {
+    // Validação
+    if (!companyFormData.company_name || !companyFormData.appKey || !companyFormData.appSecret) {
       toast({
         title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos.",
+        description: "Por favor, preencha todos os campos da empresa.",
         variant: "destructive",
       });
       return;
     }
 
-    const newCompany: Company = {
-      company_id: Math.random().toString(36).substring(7),
-      ...formData,
+    if (!managerFormData.name || !managerFormData.email || !managerFormData.phone) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos do gestor.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simulação de API: POST /company
+    const newCompanyId = Math.random().toString(36).substring(7);
+    
+    // Simulação de API: POST /user
+    const newManager: User = {
+      user_id: Math.random().toString(36).substring(7),
+      ...managerFormData,
+      profile: "MANAGER",
+      company_id: newCompanyId,
     };
 
+    const newCompany: Company = {
+      company_id: newCompanyId,
+      ...companyFormData,
+      manager: newManager,
+    };
+
+    setUsers([...users, newManager]);
     setCompanies([...companies, newCompany]);
     setIsAddDialogOpen(false);
-    setFormData({ company_name: "", manager_name: "", manager_contact: "" });
+    resetForms();
+    
     toast({
-      title: "Empresa adicionada!",
-      description: "A empresa foi cadastrada com sucesso.",
+      title: "Empresa e Gestor cadastrados!",
+      description: "A empresa e o gestor foram cadastrados com sucesso.",
     });
   };
 
   const handleEdit = () => {
     if (!selectedCompany) return;
 
-    if (!formData.company_name || !formData.manager_name || !formData.manager_contact) {
+    // Validação
+    if (!companyFormData.company_name || !companyFormData.appKey || !companyFormData.appSecret) {
       toast({
         title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos.",
+        description: "Por favor, preencha todos os campos da empresa.",
         variant: "destructive",
       });
       return;
     }
 
-    const updatedCompanies = companies.map((company) =>
-      company.company_id === selectedCompany.company_id
-        ? { ...company, ...formData }
-        : company
-    );
+    if (!managerFormData.name || !managerFormData.email || !managerFormData.phone) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos do gestor.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simulação de API: PUT /company/:id e PUT /user/:id
+    const updatedCompanies = companies.map((company) => {
+      if (company.company_id === selectedCompany.company_id) {
+        const updatedManager: User = {
+          ...company.manager!,
+          ...managerFormData,
+        };
+        
+        // Atualizar também na lista de users
+        setUsers(users.map(u => 
+          u.user_id === updatedManager.user_id ? updatedManager : u
+        ));
+
+        return {
+          ...company,
+          ...companyFormData,
+          manager: updatedManager,
+        };
+      }
+      return company;
+    });
 
     setCompanies(updatedCompanies);
     setIsEditDialogOpen(false);
     setSelectedCompany(null);
-    setFormData({ company_name: "", manager_name: "", manager_contact: "" });
+    resetForms();
+    
     toast({
       title: "Empresa atualizada!",
-      description: "As informações foram salvas com sucesso.",
+      description: "As informações da empresa e do gestor foram salvas com sucesso.",
     });
   };
 
   const handleDelete = () => {
     if (!selectedCompany) return;
 
+    // Simulação de API: DELETE /company/:id (cascade para user)
     const updatedCompanies = companies.filter(
       (company) => company.company_id !== selectedCompany.company_id
     );
+    
+    const updatedUsers = users.filter(
+      (user) => user.company_id !== selectedCompany.company_id
+    );
 
     setCompanies(updatedCompanies);
+    setUsers(updatedUsers);
     setIsDeleteDialogOpen(false);
     setSelectedCompany(null);
+    
     toast({
       title: "Empresa removida!",
-      description: "A empresa foi excluída do sistema.",
+      description: "A empresa e o gestor associado foram excluídos do sistema.",
     });
   };
 
   const openEditDialog = (company: Company) => {
     setSelectedCompany(company);
-    setFormData({
+    setCompanyFormData({
       company_name: company.company_name,
-      manager_name: company.manager_name,
-      manager_contact: company.manager_contact,
+      appKey: company.appKey,
+      appSecret: company.appSecret,
+    });
+    setManagerFormData({
+      name: company.manager?.name || "",
+      email: company.manager?.email || "",
+      phone: company.manager?.phone || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -158,8 +237,8 @@ const Companies = () => {
               {companies.map((company) => (
                 <TableRow key={company.company_id}>
                   <TableCell className="font-medium">{company.company_name}</TableCell>
-                  <TableCell>{company.manager_name}</TableCell>
-                  <TableCell>{company.manager_contact}</TableCell>
+                  <TableCell>{company.manager?.name || "—"}</TableCell>
+                  <TableCell>{company.manager?.phone || "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -188,105 +267,145 @@ const Companies = () => {
           </Table>
         </div>
 
-        {/* Add Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent>
+        {/* Add/Edit Dialog */}
+        <Dialog 
+          open={isAddDialogOpen || isEditDialogOpen} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setIsAddDialogOpen(false);
+              setIsEditDialogOpen(false);
+              setSelectedCompany(null);
+              resetForms();
+            }
+          }}
+        >
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Adicionar Nova Empresa</DialogTitle>
+              <DialogTitle>
+                {isEditDialogOpen ? "Editar Empresa e Gestor" : "Cadastrar Nova Empresa e Gestor"}
+              </DialogTitle>
               <DialogDescription>
-                Preencha os dados da nova empresa cliente
+                {isEditDialogOpen 
+                  ? "Atualize as informações da empresa e do gestor principal"
+                  : "Preencha os dados da empresa e do gestor principal"}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="add-company-name">Nome da Empresa</Label>
-                <Input
-                  id="add-company-name"
-                  placeholder="Ex: TechFlow Solutions"
-                  value={formData.company_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, company_name: e.target.value })
-                  }
-                />
+            
+            <div className="space-y-6 py-4">
+              {/* Seção 1: Dados da Empresa */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Dados da Empresa</h3>
+                  <p className="text-sm text-muted-foreground">Informações e credenciais do ERP</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name">Nome da Empresa *</Label>
+                    <Input
+                      id="company-name"
+                      placeholder="Ex: TechFlow Solutions"
+                      value={companyFormData.company_name}
+                      onChange={(e) =>
+                        setCompanyFormData({ ...companyFormData, company_name: e.target.value })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="app-key">App Key (ERP) *</Label>
+                    <Input
+                      id="app-key"
+                      type="password"
+                      placeholder="Ex: tfsk_prod_abc123xyz789"
+                      value={companyFormData.appKey}
+                      onChange={(e) =>
+                        setCompanyFormData({ ...companyFormData, appKey: e.target.value })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="app-secret">App Secret (ERP) *</Label>
+                    <Input
+                      id="app-secret"
+                      type="password"
+                      placeholder="Ex: tfss_prod_secret_key_456def"
+                      value={companyFormData.appSecret}
+                      onChange={(e) =>
+                        setCompanyFormData({ ...companyFormData, appSecret: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="add-manager-name">Nome do Gestor</Label>
-                <Input
-                  id="add-manager-name"
-                  placeholder="Ex: Carlos Silva"
-                  value={formData.manager_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, manager_name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="add-manager-contact">Contato do Gestor</Label>
-                <Input
-                  id="add-manager-contact"
-                  placeholder="Ex: +55 11 98765-4321"
-                  value={formData.manager_contact}
-                  onChange={(e) =>
-                    setFormData({ ...formData, manager_contact: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleAdd}>Adicionar Empresa</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Editar Empresa</DialogTitle>
-              <DialogDescription>
-                Atualize as informações da empresa
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-company-name">Nome da Empresa</Label>
-                <Input
-                  id="edit-company-name"
-                  value={formData.company_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, company_name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-manager-name">Nome do Gestor</Label>
-                <Input
-                  id="edit-manager-name"
-                  value={formData.manager_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, manager_name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-manager-contact">Contato do Gestor</Label>
-                <Input
-                  id="edit-manager-contact"
-                  value={formData.manager_contact}
-                  onChange={(e) =>
-                    setFormData({ ...formData, manager_contact: e.target.value })
-                  }
-                />
+              <Separator />
+
+              {/* Seção 2: Dados do Gestor */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Dados do Gestor Principal</h3>
+                  <p className="text-sm text-muted-foreground">Informações de contato do responsável</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="manager-name">Nome Completo (Gestor) *</Label>
+                    <Input
+                      id="manager-name"
+                      placeholder="Ex: Carlos Silva"
+                      value={managerFormData.name}
+                      onChange={(e) =>
+                        setManagerFormData({ ...managerFormData, name: e.target.value })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="manager-email">Email (Gestor) *</Label>
+                    <Input
+                      id="manager-email"
+                      type="email"
+                      placeholder="Ex: carlos.silva@empresa.com"
+                      value={managerFormData.email}
+                      onChange={(e) =>
+                        setManagerFormData({ ...managerFormData, email: e.target.value })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="manager-phone">Telefone (Gestor) *</Label>
+                    <Input
+                      id="manager-phone"
+                      type="tel"
+                      placeholder="Ex: +55 11 98765-4321"
+                      value={managerFormData.phone}
+                      onChange={(e) =>
+                        setManagerFormData({ ...managerFormData, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
               </div>
             </div>
+            
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsAddDialogOpen(false);
+                  setIsEditDialogOpen(false);
+                  setSelectedCompany(null);
+                  resetForms();
+                }}
+              >
                 Cancelar
               </Button>
-              <Button onClick={handleEdit}>Salvar Alterações</Button>
+              <Button onClick={isEditDialogOpen ? handleEdit : handleAdd}>
+                {isEditDialogOpen ? "Salvar Alterações" : "Cadastrar Empresa e Gestor"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -298,12 +417,15 @@ const Companies = () => {
               <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
               <AlertDialogDescription>
                 Tem certeza que deseja remover a empresa "{selectedCompany?.company_name}"?
-                Esta ação não pode ser desfeita.
+                Esta ação também removerá o gestor associado e não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogAction 
+                onClick={handleDelete} 
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
                 Remover Empresa
               </AlertDialogAction>
             </AlertDialogFooter>

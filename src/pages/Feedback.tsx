@@ -70,7 +70,7 @@ const Feedback = () => {
                     <div className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">
-                        Gestor: {feedback.company.manager_name}
+                        Gestor: {feedback.company.manager?.name || "—"}
                       </span>
                     </div>
                   </div>
@@ -117,7 +117,7 @@ const Feedback = () => {
                     <div className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">
-                        Gestor: {evaluation.company.manager_name}
+                        Gestor: {evaluation.company.manager?.name || "—"}
                       </span>
                     </div>
                   </div>
