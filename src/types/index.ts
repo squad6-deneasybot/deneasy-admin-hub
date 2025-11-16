@@ -5,11 +5,21 @@ export interface SuperAdmin {
   password: string;
 }
 
+export interface User {
+  user_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  profile: "MANAGER" | "EMPLOYEE";
+  company_id: string;
+}
+
 export interface Company {
   company_id: string;
   company_name: string;
-  manager_name: string;
-  manager_contact: string;
+  appKey: string;
+  appSecret: string;
+  manager?: User; // Relação aninhada para exibição
 }
 
 export interface InitialFeedback {
