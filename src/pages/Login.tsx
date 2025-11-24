@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,11 +38,17 @@ const Login = () => {
           description: "Bem-vindo ao DeneasyBot Super Admin.",
         });
         navigate("/dashboard");
+      } else {
+        toast({
+          title: "Erro ao fazer login",
+          description: "Verifique suas credenciais e tente novamente.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
-        title: "Erro ao fazer login",
-        description: "Verifique suas credenciais e tente novamente.",
+        title: "Erro inesperado",
+        description: "Ocorreu um erro ao tentar conectar ao servidor.",
         variant: "destructive",
       });
     } finally {
@@ -96,12 +102,6 @@ const Login = () => {
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Não tem uma conta? </span>
-            <Link to="/register" className="font-medium text-primary hover:underline">
-              Registre-se
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </div>

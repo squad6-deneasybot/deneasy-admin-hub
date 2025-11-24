@@ -29,10 +29,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { mockCompanies, mockUsers } from "@/data/mockData";
 import { Company, User } from "@/types";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, MoreVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Companies = () => {
@@ -212,18 +219,19 @@ const Companies = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-foreground">Empresas</h2>
-            <p className="text-muted-foreground">Gerencie as empresas clientes do DeneasyBot</p>
+            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Empresas</h2>
+            <p className="text-sm text-muted-foreground sm:text-base">Gerencie as empresas clientes do DeneasyBot</p>
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+          <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto gap-2">
             <Plus className="h-4 w-4" />
-            Adicionar Nova Empresa
+            Adicionar Empresa
           </Button>
         </div>
 
-        <div className="rounded-lg border bg-card">
+        {/* Desktop View (Table) */}
+        <div className="hidden md:block rounded-lg border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -265,6 +273,68 @@ const Companies = () => {
               ))}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Mobile View (Cards) */}
+        <div className="grid gap-4 md:hidden">
+          {companies.map((company) => (
+            <Card key={company.company_id} className="overflow-hidden">
+              <CardHeader className="flex flex-row items-start justify-between space-y-0 bg-muted/20 p-4">
+                <CardTitle className="text-base font-semibold line-clamp-1">
+                  {company.company_name}
+                </CardTitle>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="-mr-2 h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                      <span className="sr-only">Abrir menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => openEditDialog(company)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => openDeleteDialog(company)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remover
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </CardHeader>
+              <CardContent className="p-4 pt-3 space-y-3">
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Gestor
+                  </span>
+                  <div className="text-sm font-medium text-foreground">
+                    {company.manager?.name || "—"}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Contato
+                  </span>
+                  <div className="text-sm font-medium text-foreground">
+                    {company.manager?.phone || "—"}
+                  </div>
+                </div>
+                {company.manager?.email && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Email
+                    </span>
+                    <div className="text-sm font-medium text-foreground break-all">
+                      {company.manager.email}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Add/Edit Dialog */}
@@ -391,7 +461,7 @@ const Companies = () => {
               </div>
             </div>
             
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
               <Button 
                 variant="outline" 
                 onClick={() => {
@@ -400,11 +470,15 @@ const Companies = () => {
                   setSelectedCompany(null);
                   resetForms();
                 }}
+                className="w-full sm:w-auto"
               >
                 Cancelar
               </Button>
-              <Button onClick={isEditDialogOpen ? handleEdit : handleAdd}>
-                {isEditDialogOpen ? "Salvar Alterações" : "Cadastrar Empresa e Gestor"}
+              <Button 
+                onClick={isEditDialogOpen ? handleEdit : handleAdd}
+                className="w-full sm:w-auto"
+              >
+                {isEditDialogOpen ? "Salvar Alterações" : "Cadastrar"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -420,11 +494,11 @@ const Companies = () => {
                 Esta ação também removerá o gestor associado e não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel className="w-full sm:w-auto mt-0">Cancelar</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={handleDelete} 
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
               >
                 Remover Empresa
               </AlertDialogAction>

@@ -37,7 +37,8 @@ const Feedback = () => {
         </div>
 
         <Tabs defaultValue="features" className="space-y-4">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          {/* Correção: grid-cols-1 para mobile (empilhado) e h-auto para ajustar altura */}
+          <TabsList className="grid w-full max-w-md grid-cols-1 h-auto sm:grid-cols-2">
             <TabsTrigger value="features">Solicitações de Funcionalidades</TabsTrigger>
             <TabsTrigger value="evaluations">Avaliações de Atendimento</TabsTrigger>
           </TabsList>
@@ -46,11 +47,12 @@ const Feedback = () => {
             {mockInitialFeedback.map((feedback) => (
               <Card key={feedback.feedback_id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
+                  {/* Ajuste responsivo: flex-col no mobile para evitar quebra de layout */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <CardTitle className="text-base font-medium">
                       Solicitação de Funcionalidade
                     </CardTitle>
-                    <Badge variant="secondary" className="shrink-0">
+                    <Badge variant="secondary" className="shrink-0 w-fit">
                       <Calendar className="mr-1 h-3 w-3" />
                       {format(new Date(feedback.created_at), "dd MMM yyyy", { locale: ptBR })}
                     </Badge>
@@ -62,14 +64,14 @@ const Feedback = () => {
                   </p>
                   <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 p-3">
                     <div className="flex items-center gap-2 text-sm">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">
+                      <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="font-medium text-foreground truncate">
                         {feedback.company.company_name}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground truncate">
                         Gestor: {feedback.company.manager?.name || "—"}
                       </span>
                     </div>
@@ -83,7 +85,8 @@ const Feedback = () => {
             {mockServiceEvaluations.map((evaluation) => (
               <Card key={evaluation.evaluation_id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
+                  {/* Ajuste responsivo: flex-col no mobile */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="space-y-2">
                       <CardTitle className="text-base font-medium">
                         Avaliação de Atendimento
@@ -97,7 +100,7 @@ const Feedback = () => {
                         </div>
                       )}
                     </div>
-                    <Badge variant="secondary" className="shrink-0">
+                    <Badge variant="secondary" className="shrink-0 w-fit">
                       <Calendar className="mr-1 h-3 w-3" />
                       {format(new Date(evaluation.created_at), "dd MMM yyyy", { locale: ptBR })}
                     </Badge>
@@ -109,14 +112,14 @@ const Feedback = () => {
                   </p>
                   <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 p-3">
                     <div className="flex items-center gap-2 text-sm">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">
+                      <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="font-medium text-foreground truncate">
                         {evaluation.company.company_name}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground truncate">
                         Gestor: {evaluation.company.manager?.name || "—"}
                       </span>
                     </div>
