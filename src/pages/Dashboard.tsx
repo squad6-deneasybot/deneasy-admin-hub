@@ -7,10 +7,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
-// Interface para a resposta da API
 interface DashboardMetricsResponse {
   totalCompanies: number;
-  totalEmployees: number;
+  totalUsers: number;
   totalFeedbacks: number;
   averageRating: number;
 }
@@ -22,7 +21,7 @@ interface HealthStatus {
 const Dashboard = () => {
   const [metrics, setMetrics] = useState<DashboardMetricsResponse>({
     totalCompanies: 0,
-    totalEmployees: 0,
+    totalUsers: 0,
     totalFeedbacks: 0,
     averageRating: 0,
   });
@@ -32,14 +31,18 @@ const Dashboard = () => {
   
   const { toast } = useToast();
 
-  // Dados mockados para o gráfico de linha (conforme requisito)
   const { customerServiceData } = mockDashboardMetrics;
 
-  // Busca Métricas do Dashboard
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
         const token = localStorage.getItem("token");
+        
+        if (!token) {
+            console.warn("Token não encontrado. Usuário pode não estar logado.");
+            return;
+        }
+
         const response = await fetch("/dashboard/metrics", {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -51,13 +54,20 @@ const Dashboard = () => {
           const data = await response.json();
           setMetrics(data);
         } else {
-          console.error("Falha ao carregar métricas do dashboard");
+          console.error("Falha ao carregar métricas do dashboard. Status:", response.status);
+          if (response.status === 403 || response.status === 401) {
+             toast({
+                title: "Sessão Expirada",
+                description: "Por favor, faça login novamente.",
+                variant: "destructive",
+             });
+          }
         }
       } catch (error) {
         console.error("Erro ao buscar métricas:", error);
         toast({
-          title: "Erro",
-          description: "Não foi possível carregar as métricas do dashboard.",
+          title: "Erro de Conexão",
+          description: "Não foi possível conectar ao servidor.",
           variant: "destructive",
         });
       } finally {
@@ -68,11 +78,9 @@ const Dashboard = () => {
     fetchMetrics();
   }, [toast]);
 
-  // Polling para Status do Bot (/actuator/health)
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        // /actuator/health geralmente é público, mas se precisar de auth, adicione os headers
         const response = await fetch("/actuator/health");
         if (response.ok) {
           const data = await response.json();
@@ -88,10 +96,8 @@ const Dashboard = () => {
       }
     };
 
-    // Chama imediatamente
     checkHealth();
 
-    // Configura intervalo de 60 segundos
     const intervalId = setInterval(checkHealth, 60000);
 
     return () => clearInterval(intervalId);
@@ -105,9 +111,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Visão geral do sistema DeneasyBot</p>
         </div>
 
-        {/* KPIs Grid - Dados Reais */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Total de Empresas */}
           <Card className="border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Empresas</CardTitle>
@@ -121,7 +125,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Total de Funcionários */}
           <Card className="border-l-4 border-l-info">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Funcionários</CardTitle>
@@ -129,13 +132,12 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {isLoadingMetrics ? <Loader2 className="h-4 w-4 animate-spin" /> : metrics.totalEmployees}
+                {isLoadingMetrics ? <Loader2 className="h-4 w-4 animate-spin" /> : metrics.totalUsers}
               </div>
               <p className="text-xs text-muted-foreground">Usuários vinculados às empresas</p>
             </CardContent>
           </Card>
 
-          {/* Feedbacks Recebidos */}
           <Card className="border-l-4 border-l-accent">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Feedbacks Recebidos</CardTitle>
@@ -149,7 +151,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Média de Avaliação */}
           <Card className="border-l-4 border-l-warning">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Média de Avaliação</CardTitle>
@@ -168,9 +169,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Charts & Status Grid */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Gráfico de Linha (Mockado) */}
           <Card className="col-span-1">
             <CardHeader>
               <CardTitle>Atendimentos Finalizados</CardTitle>
@@ -202,14 +201,13 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Novo Widget: Status do Bot */}
           <Card className="col-span-1 flex flex-col justify-center items-center p-6">
             <CardHeader className="pb-2 text-center">
               <CardTitle className="text-xl font-semibold flex items-center gap-2 justify-center">
                 <Activity className="h-6 w-6" />
                 Status do Bot
               </CardTitle>
-              <p className="text-sm text-muted-foreground">Monitoramento em tempo real (/actuator/health)</p>
+              <p className="text-sm text-muted-foreground">Monitoramento em tempo real</p>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4 pt-4">
               {isLoadingHealth ? (

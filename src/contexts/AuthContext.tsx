@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { SuperAdmin } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: SuperAdmin | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -20,7 +20,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // CORREÇÃO: Inicialização Lazy (preguiçosa) para evitar race condition e crash
+  const { toast } = useToast();
   const [user, setUser] = useState<SuperAdmin | null>(() => {
     const storedUser = localStorage.getItem("superAdmin");
     if (storedUser) {
@@ -28,7 +28,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return JSON.parse(storedUser);
       } catch (error) {
         console.error("Erro ao recuperar sessão:", error);
-        localStorage.removeItem("superAdmin"); // Limpa dados corrompidos
+        localStorage.removeItem("superAdmin");
+        localStorage.removeItem("token");
         return null;
       }
     }
@@ -36,36 +37,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication
-    const mockUser: SuperAdmin = {
-      admin_id: "1",
-      name: "Admin DeneasyBot",
-      email: email,
-      password: password,
-    };
+    try {
+      const response = await fetch("/auth/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    setUser(mockUser);
-    localStorage.setItem("superAdmin", JSON.stringify(mockUser));
-    return true;
+      if (response.ok) {
+        const data = await response.json();
+        
+        const adminUser: SuperAdmin = {
+          admin_id: data.id.toString(),
+          name: data.name,
+          email: data.email,
+          password: "",
+        };
+
+        localStorage.setItem("token", data.jwt);
+        localStorage.setItem("superAdmin", JSON.stringify(adminUser));
+        
+        setUser(adminUser);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Erro na requisição de login:", error);
+      return false;
+    }
   };
 
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Mock registration
-    const newUser: SuperAdmin = {
-      admin_id: Math.random().toString(36).substring(7),
-      name,
-      email,
-      password,
-    };
-
-    setUser(newUser);
-    localStorage.setItem("superAdmin", JSON.stringify(newUser));
-    return true;
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("superAdmin");
+  const logout = async () => {
+    try {
+        const token = localStorage.getItem("token");
+        if (token) {
+            await fetch("/auth/logout", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao realizar logout no backend", error);
+    } finally {
+        setUser(null);
+        localStorage.removeItem("superAdmin");
+        localStorage.removeItem("token");
+    }
   };
 
   return (
@@ -73,7 +95,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         login,
-        register,
         logout,
         isAuthenticated: !!user,
       }}

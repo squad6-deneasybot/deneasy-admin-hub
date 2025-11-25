@@ -9,9 +9,8 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 5173,
     proxy: {
-      // Proxy para as rotas da API
       '/auth': {
-        target: 'http://localhost:8080', // Ajuste a porta do seu backend se necessário
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/feedback': {
@@ -22,7 +21,6 @@ export default defineConfig(({ mode }) => ({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
-      // Novo proxy para o actuator
       '/actuator': {
         target: 'http://localhost:8080',
         changeOrigin: true,

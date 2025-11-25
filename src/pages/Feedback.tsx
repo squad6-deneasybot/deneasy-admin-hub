@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, User, Calendar, Star } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/components/ui/use-toast";
 
-// Interfaces baseadas nos DTOs do Backend Java
+const API_BASE_URL = "http://localhost:8080";
+
 interface WishlistDTO {
   id: number;
   content: string;
@@ -26,12 +28,11 @@ interface EvaluationDTO {
 }
 
 const Feedback = () => {
-  // Estados para armazenar dados da API
   const [wishlistItems, setWishlistItems] = useState<WishlistDTO[]>([]);
   const [evaluationItems, setEvaluationItems] = useState<EvaluationDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Busca os dados ao carregar a página
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,30 +42,39 @@ const Feedback = () => {
           "Authorization": `Bearer ${token}`,
         };
 
-        // Chamadas paralelas para popular as duas abas
         const [resWishlist, resEvaluation] = await Promise.all([
-          fetch("http://localhost:8080/feedback/wishlist", { headers }),
-          fetch("http://localhost:8080/feedback/evaluation", { headers }),
+          fetch(`${API_BASE_URL}/feedback/wishlist`, { headers }),
+          fetch(`${API_BASE_URL}/feedback/evaluation`, { headers }),
         ]);
 
         if (resWishlist.ok) {
           const data = await resWishlist.json();
           setWishlistItems(data);
+        } else {
+            console.error("Falha ao carregar wishlist");
         }
 
         if (resEvaluation.ok) {
           const data = await resEvaluation.json();
           setEvaluationItems(data);
+        } else {
+            console.error("Falha ao carregar evaluations");
         }
+
       } catch (error) {
         console.error("Erro ao carregar feedbacks:", error);
+        toast({
+            title: "Erro de conexão",
+            description: "Não foi possível carregar os feedbacks.",
+            variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [toast]);
 
   const renderStars = (rating?: number) => {
     if (!rating) return null;
@@ -98,13 +108,11 @@ const Feedback = () => {
           <div className="text-muted-foreground">Carregando dados...</div>
         ) : (
           <Tabs defaultValue="features" className="space-y-4">
-            {/* Correção: grid-cols-1 para mobile (empilhado) e h-auto para ajustar altura */}
             <TabsList className="grid w-full max-w-md grid-cols-1 h-auto sm:grid-cols-2">
               <TabsTrigger value="features">Solicitações de Funcionalidades</TabsTrigger>
               <TabsTrigger value="evaluations">Avaliações de Atendimento</TabsTrigger>
             </TabsList>
 
-            {/* ABA 1: Solicitações (Wishlist) */}
             <TabsContent value="features" className="space-y-4">
               {wishlistItems.length === 0 && (
                 <p className="text-sm text-muted-foreground">Nenhuma solicitação encontrada.</p>
@@ -147,7 +155,6 @@ const Feedback = () => {
               ))}
             </TabsContent>
 
-            {/* ABA 2: Avaliações (Evaluations) - CORRIGIDO */}
             <TabsContent value="evaluations" className="space-y-4">
               {evaluationItems.length === 0 && (
                 <p className="text-sm text-muted-foreground">Nenhuma avaliação encontrada.</p>
@@ -160,7 +167,6 @@ const Feedback = () => {
                         <CardTitle className="text-base font-medium">
                           Avaliação de Atendimento
                         </CardTitle>
-                        {/* Exibe estrelas se houver rating */}
                         {evaluation.rating > 0 && (
                           <div className="flex items-center gap-2">
                             {renderStars(evaluation.rating)}
@@ -186,14 +192,12 @@ const Feedback = () => {
                       <div className="flex items-center gap-2 text-sm">
                         <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="font-medium text-foreground truncate">
-                          {/* Correção: Acessa companyName direto do DTO */}
                           {evaluation.companyName || "Empresa Desconhecida"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground truncate">
-                          {/* Correção: Acessa userName direto do DTO */}
                           Gestor: {evaluation.userName || "—"}
                         </span>
                       </div>
