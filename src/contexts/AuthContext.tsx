@@ -4,7 +4,6 @@ import { SuperAdmin } from "@/types";
 interface AuthContextType {
   user: SuperAdmin | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -24,42 +23,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("superAdmin");
-    if (storedUser) {
+    const token = localStorage.getItem("token");
+    
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication - em produção, isso faria uma chamada à API
+    console.log("⚠️ Login Mockado ativado");
+    
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     const mockUser: SuperAdmin = {
-      admin_id: "1",
-      name: "Admin DeneasyBot",
-      email: email,
-      password: password,
+      admin_id: "mock-admin-id",
+      name: "Admin Teste",
+      email: email, 
+      password: "", 
     };
 
     setUser(mockUser);
     localStorage.setItem("superAdmin", JSON.stringify(mockUser));
-    return true;
-  };
-
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Mock registration - em produção, isso faria uma chamada à API
-    const newUser: SuperAdmin = {
-      admin_id: Math.random().toString(36).substring(7),
-      name,
-      email,
-      password,
-    };
-
-    setUser(newUser);
-    localStorage.setItem("superAdmin", JSON.stringify(newUser));
-    return true;
+    localStorage.setItem("token", "token-falso-de-teste-123456"); 
+    
+    return true; 
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("superAdmin");
+    localStorage.removeItem("token");
   };
 
   return (
@@ -67,7 +60,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         login,
-        register,
         logout,
         isAuthenticated: !!user,
       }}
