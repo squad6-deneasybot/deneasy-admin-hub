@@ -38,7 +38,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch("/auth/admin/login", {
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${API_URL}/auth/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
