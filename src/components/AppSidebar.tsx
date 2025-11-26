@@ -84,7 +84,7 @@ export function AppSidebar() {
             <div className="flex items-center gap-3">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {user?.name.substring(0, 2).toUpperCase()}
+                  {user?.name?.substring(0, 2).toUpperCase() || "AD"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 overflow-hidden">
@@ -95,7 +95,7 @@ export function AppSidebar() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start gap-2 border-sidebar-border"
+              className="w-full justify-start gap-2 border-sidebar-border text-foreground hover:text-accent-foreground"
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
@@ -106,7 +106,7 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-10 w-10"
+            className="h-10 w-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             onClick={handleLogout}
           >
             <LogOut className="h-5 w-5" />
