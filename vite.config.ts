@@ -8,6 +8,24 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 5173,
+    proxy: {
+      '/auth': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/feedback': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/dashboard': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/actuator': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    }
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

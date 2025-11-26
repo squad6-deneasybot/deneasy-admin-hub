@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { SuperAdmin } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: SuperAdmin | null;
@@ -19,40 +20,74 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<SuperAdmin | null>(null);
-
-  useEffect(() => {
+  const { toast } = useToast();
+  const [user, setUser] = useState<SuperAdmin | null>(() => {
     const storedUser = localStorage.getItem("superAdmin");
-    const token = localStorage.getItem("token");
-    
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (error) {
+        console.error("Erro ao recuperar sessão:", error);
+        localStorage.removeItem("superAdmin");
+        localStorage.removeItem("token");
+        return null;
+      }
     }
-  }, []);
+    return null;
+  });
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    console.log("⚠️ Login Mockado ativado");
-    
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      const response = await fetch("/auth/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const mockUser: SuperAdmin = {
-      admin_id: "mock-admin-id",
-      name: "Admin Teste",
-      email: email, 
-      password: "", 
-    };
+      if (response.ok) {
+        const data = await response.json();
+        
+        const adminUser: SuperAdmin = {
+          admin_id: data.id.toString(),
+          name: data.name,
+          email: data.email,
+          password: "",
+        };
 
-    setUser(mockUser);
-    localStorage.setItem("superAdmin", JSON.stringify(mockUser));
-    localStorage.setItem("token", "token-falso-de-teste-123456"); 
-    
-    return true; 
+        localStorage.setItem("token", data.jwt);
+        localStorage.setItem("superAdmin", JSON.stringify(adminUser));
+        
+        setUser(adminUser);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Erro na requisição de login:", error);
+      return false;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("superAdmin");
-    localStorage.removeItem("token");
+  const logout = async () => {
+    try {
+        const token = localStorage.getItem("token");
+        if (token) {
+            await fetch("/auth/logout", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao realizar logout no backend", error);
+    } finally {
+        setUser(null);
+        localStorage.removeItem("superAdmin");
+        localStorage.removeItem("token");
+    }
   };
 
   return (
