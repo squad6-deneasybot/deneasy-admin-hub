@@ -6,6 +6,7 @@ import { Building2, MessageSquare, Users, Star, Loader2, Activity, CheckCircle, 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { getApiUrl } from "@/lib/api-config";
 
 interface DashboardMetricsResponse {
   totalCompanies: number;
@@ -43,7 +44,7 @@ const Dashboard = () => {
             return;
         }
 
-        const response = await fetch("/dashboard/metrics", {
+        const response = await fetch(`${getApiUrl()}/dashboard/metrics`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -81,7 +82,7 @@ const Dashboard = () => {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch("/actuator/health");
+        const response = await fetch(`${getApiUrl()}/actuator/health`);
         if (response.ok) {
           const data = await response.json();
           setHealthStatus(data.status === "UP" ? "UP" : "DOWN");

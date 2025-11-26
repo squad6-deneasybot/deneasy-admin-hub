@@ -39,8 +39,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Edit, Trash2, MoreVertical, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const API_BASE_URL = "http://localhost:8080";
+import { getApiUrl } from "@/lib/api-config";
 
 interface Company {
   id: number;
@@ -85,9 +84,9 @@ const Companies = () => {
         return;
       }
 
-      console.log("Buscando empresas em:", `${API_BASE_URL}/company`);
+      console.log("Buscando empresas em:", `${getApiUrl()}/company`);
       
-      const response = await fetch(`${API_BASE_URL}/company`, {
+      const response = await fetch(`${getApiUrl()}/company`, {
         headers: { 
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -135,7 +134,7 @@ const Companies = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const companyRes = await fetch(`${API_BASE_URL}/company`, {
+      const companyRes = await fetch(`${getApiUrl()}/company`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(companyFormData)
@@ -153,7 +152,7 @@ const Companies = () => {
         companyId: createdCompany.id
       };
 
-      const userRes = await fetch(`${API_BASE_URL}/user/manager`, {
+      const userRes = await fetch(`${getApiUrl()}/user/manager`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(userPayload)
@@ -181,7 +180,7 @@ const Companies = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const companyRes = await fetch(`${API_BASE_URL}/company/${selectedCompany.id}`, {
+      const companyRes = await fetch(`${getApiUrl()}/company/${selectedCompany.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(companyFormData)
@@ -190,13 +189,13 @@ const Companies = () => {
       if (!companyRes.ok) throw new Error("Erro ao atualizar empresa");
 
       if (selectedCompany.managerId) {
-        await fetch(`${API_BASE_URL}/user/manager/${selectedCompany.managerId}`, {
+        await fetch(`${getApiUrl()}/user/manager/${selectedCompany.managerId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
           body: JSON.stringify({ ...managerFormData, companyId: selectedCompany.id })
         });
       } else {
-        await fetch(`${API_BASE_URL}/user/manager`, {
+        await fetch(`${getApiUrl()}/user/manager`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({ ...managerFormData, companyId: selectedCompany.id })
@@ -221,7 +220,7 @@ const Companies = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/company/${selectedCompany.id}`, {
+      const response = await fetch(`${getApiUrl()}/company/${selectedCompany.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });

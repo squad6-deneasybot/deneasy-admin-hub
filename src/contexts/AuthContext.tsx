@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { SuperAdmin } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/lib/api-config";
 
 interface AuthContextType {
   user: SuperAdmin | null;
@@ -38,8 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(`${API_URL}/auth/admin/login`, {
+      const response = await fetch(`${getApiUrl()}/auth/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

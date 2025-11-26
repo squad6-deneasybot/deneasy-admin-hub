@@ -7,8 +7,7 @@ import { Building2, User, Calendar, Star } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/components/ui/use-toast";
-
-const API_BASE_URL = "http://localhost:8080";
+import { getApiUrl } from "@/lib/api-config";
 
 interface WishlistDTO {
   id: number;
@@ -43,8 +42,8 @@ const Feedback = () => {
         };
 
         const [resWishlist, resEvaluation] = await Promise.all([
-          fetch(`${API_BASE_URL}/feedback/wishlist`, { headers }),
-          fetch(`${API_BASE_URL}/feedback/evaluation`, { headers }),
+          fetch(`${getApiUrl()}/feedback/wishlist`, { headers }),
+          fetch(`${getApiUrl()}/feedback/evaluation`, { headers }),
         ]);
 
         if (resWishlist.ok) {
