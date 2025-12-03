@@ -35,15 +35,18 @@ const Feedback = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
         const headers = {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        };
+
+        const fetchOptions = {
+            headers,
+            credentials: 'include' as RequestCredentials
         };
 
         const [resWishlist, resEvaluation] = await Promise.all([
-          fetch(`${getApiUrl()}/feedback/wishlist`, { headers }),
-          fetch(`${getApiUrl()}/feedback/evaluation`, { headers }),
+          fetch(`${getApiUrl()}/feedback/wishlist`, fetchOptions),
+          fetch(`${getApiUrl()}/feedback/evaluation`, fetchOptions),
         ]);
 
         if (resWishlist.ok) {

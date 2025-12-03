@@ -37,17 +37,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const token = localStorage.getItem("token");
-        
-        if (!token) {
-            console.warn("Token não encontrado. Usuário pode não estar logado.");
-            return;
-        }
 
         const response = await fetch(`${getApiUrl()}/dashboard/metrics`, {
+          credentials: 'include',
           headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
         });
 
