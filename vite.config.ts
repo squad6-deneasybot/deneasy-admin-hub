@@ -32,6 +32,14 @@ export default defineConfig(({ mode }) => {
           target: targetUrl,
           changeOrigin: true,
         },
+        '/company': {
+          target: targetUrl,
+          changeOrigin: true,
+        },
+        '/user': {
+          target: targetUrl,
+          changeOrigin: true,
+        }
       }
     },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

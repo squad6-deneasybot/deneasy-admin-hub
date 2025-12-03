@@ -30,7 +30,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error("Erro ao recuperar sessão:", error);
         localStorage.removeItem("superAdmin");
-        localStorage.removeItem("token");
         return null;
       }
     }
@@ -44,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", 
         body: JSON.stringify({ email, password }),
       });
 
@@ -56,10 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email: data.email,
           password: "",
         };
-
-        localStorage.setItem("token", data.jwt);
-        localStorage.setItem("superAdmin", JSON.stringify(adminUser));
         
+        localStorage.setItem("superAdmin", JSON.stringify(adminUser));
         setUser(adminUser);
         return true;
       } else {
@@ -73,21 +71,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-        const token = localStorage.getItem("token");
-        if (token) {
-            await fetch("/auth/logout", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            });
-        }
+        await fetch(`${getApiUrl()}/auth/logout`, {
+            method: "POST",
+            credentials: "include"
+        });
     } catch (error) {
         console.error("Erro ao realizar logout no backend", error);
     } finally {
         setUser(null);
         localStorage.removeItem("superAdmin");
-        localStorage.removeItem("token");
     }
   };
 

@@ -78,17 +78,12 @@ const Companies = () => {
   const fetchCompanies = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.warn("Token não encontrado no localStorage");
-        return;
-      }
 
       console.log("Buscando empresas em:", `${getApiUrl()}/company`);
       
       const response = await fetch(`${getApiUrl()}/company`, {
-        headers: { 
-            "Authorization": `Bearer ${token}`,
+        credentials: 'include',
+        headers: {
             "Content-Type": "application/json"
         }
       });
@@ -131,12 +126,12 @@ const Companies = () => {
     }
 
     setIsProcessing(true);
-    const token = localStorage.getItem("token");
 
     try {
       const companyRes = await fetch(`${getApiUrl()}/company`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        credentials: 'include',
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(companyFormData)
       });
 
@@ -154,7 +149,8 @@ const Companies = () => {
 
       const userRes = await fetch(`${getApiUrl()}/user/manager`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        credentials: 'include',
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userPayload)
       });
 
@@ -177,12 +173,12 @@ const Companies = () => {
   const handleEdit = async () => {
     if (!selectedCompany) return;
     setIsProcessing(true);
-    const token = localStorage.getItem("token");
 
     try {
       const companyRes = await fetch(`${getApiUrl()}/company/${selectedCompany.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        credentials: 'include',
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(companyFormData)
       });
 
@@ -191,13 +187,15 @@ const Companies = () => {
       if (selectedCompany.managerId) {
         await fetch(`${getApiUrl()}/user/manager/${selectedCompany.managerId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          credentials: 'include',
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...managerFormData, companyId: selectedCompany.id })
         });
       } else {
         await fetch(`${getApiUrl()}/user/manager`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            credentials: 'include',
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...managerFormData, companyId: selectedCompany.id })
         });
       }
@@ -217,12 +215,11 @@ const Companies = () => {
   const handleDelete = async () => {
     if (!selectedCompany) return;
     setIsProcessing(true);
-    const token = localStorage.getItem("token");
 
     try {
       const response = await fetch(`${getApiUrl()}/company/${selectedCompany.id}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error("Erro ao remover empresa");
