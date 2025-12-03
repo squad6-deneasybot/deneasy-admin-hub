@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockDashboardMetrics } from "@/data/mockData";
 import { Building2, MessageSquare, Users, Star, Loader2, Activity, CheckCircle, XCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { getApiUrl } from "@/lib/api-config";
-
-interface DashboardMetricsResponse {
-  totalCompanies: number;
-  totalUsers: number;
-  totalFeedbacks: number;
-  averageRating: number;
-}
+import { DashboardMetrics } from "@/types";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface HealthStatus {
   status: "UP" | "DOWN" | "UNKNOWN";
 }
 
 const Dashboard = () => {
-  const [metrics, setMetrics] = useState<DashboardMetricsResponse>({
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalCompanies: 0,
     totalUsers: 0,
     totalFeedbacks: 0,
     averageRating: 0,
+    attendanceHistory: []
   });
   const [healthStatus, setHealthStatus] = useState<HealthStatus["status"]>("UNKNOWN");
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
@@ -32,16 +28,18 @@ const Dashboard = () => {
   
   const { toast } = useToast();
 
-  const { customerServiceData } = mockDashboardMetrics;
+  const chartData = metrics.attendanceHistory?.map(item => ({
+    ...item,
+    displayDate: format(parseISO(item.date), "dd/MM", { locale: ptBR })
+  })) || [];
 
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-
         const response = await fetch(`${getApiUrl()}/dashboard/metrics`, {
           credentials: 'include',
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
         });
 
@@ -92,9 +90,7 @@ const Dashboard = () => {
     };
 
     checkHealth();
-
     const intervalId = setInterval(checkHealth, 60000);
-
     return () => clearInterval(intervalId);
   }, []);
 
@@ -167,32 +163,45 @@ const Dashboard = () => {
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="col-span-1">
             <CardHeader>
-              <CardTitle>Atendimentos Finalizados</CardTitle>
-              <p className="text-sm text-muted-foreground">Últimos 7 dias (Simulação)</p>
+              <CardTitle>Atendimentos Avaliados</CardTitle>
+              <p className="text-sm text-muted-foreground">Últimos 30 dias (Dados Reais)</p>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={customerServiceData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="date" stroke="hsl(var(--foreground))" />
-                  <YAxis stroke="hsl(var(--foreground))" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "var(--radius)",
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))", r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {isLoadingMetrics ? (
+                 <div className="flex h-[300px] items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                 </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                        dataKey="displayDate" 
+                        stroke="hsl(var(--foreground))" 
+                        fontSize={12}
+                        tickMargin={10}
+                    />
+                    <YAxis stroke="hsl(var(--foreground))" fontSize={12} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "var(--radius)",
+                      }}
+                      labelStyle={{ color: "hsl(var(--foreground))" }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      name="Avaliações"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
