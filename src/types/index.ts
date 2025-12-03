@@ -19,7 +19,7 @@ export interface Company {
   company_name: string;
   appKey: string;
   appSecret: string;
-  manager?: User; // Relação aninhada para exibição
+  manager?: User;
 }
 
 export interface InitialFeedback {
@@ -39,7 +39,8 @@ export interface ServiceEvaluation {
 
 export interface DashboardMetrics {
   totalCompanies: number;
+  totalUsers: number;
   totalFeedbacks: number;
-  customerServiceData: { date: string; count: number }[];
-  systemHealthData: { name: string; value: number }[];
+  averageRating: number;
+  attendanceHistory: { date: string; count: number }[];
 }
