@@ -164,7 +164,7 @@ const Dashboard = () => {
           <Card className="col-span-1">
             <CardHeader>
               <CardTitle>Atendimentos Avaliados</CardTitle>
-              <p className="text-sm text-muted-foreground">Últimos 30 dias (Dados Reais)</p>
+              <p className="text-sm text-muted-foreground">Últimos 30 dias</p>
             </CardHeader>
             <CardContent>
               {isLoadingMetrics ? (
